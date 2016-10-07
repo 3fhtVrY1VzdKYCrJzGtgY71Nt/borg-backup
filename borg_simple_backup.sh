@@ -10,6 +10,7 @@ echo "
 
 borg create                           \
     $REPOSITORY::'{hostname}-{now}'    \
+    --exclude-from /etc/borg.exclusion		\
     --compression lzma,9                        \
     --verbose --stats                           \
     $DATA                                       \
