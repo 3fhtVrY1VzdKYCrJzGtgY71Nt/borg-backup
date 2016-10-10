@@ -2,6 +2,11 @@
 
 source /etc/borg.conf
 
+if [[ $EUID -eq 0 ]]; then
+   echo "This script can't be run as root" 1>&2
+   exit 1
+fi
+
 echo "
 
 
@@ -26,7 +31,7 @@ echo "##### ending backup at $DATE  #####
 ... pruning
  "     >> $LOG 2>&1
 
-borg prune 
+borg prune				\
     --debug --list 				\
     --prefix '{hostname}-' 			\
     --keep-within=1H --keep-hourly=1 --keep-daily=2 --keep-weekly=1 --keep-monthly=1 \
@@ -44,16 +49,18 @@ dropbox start >> $LOG 2>&1 || failed to start dropbox  >> $LOG 2>&1
 dropbox status >> $LOG 2>&1
 
 
-echo "##### starting 1st transfer at $DATE #####"     >> $LOG 2>&1
+echo "
+##### starting 1st transfer at $DATE #####"     >> $LOG 2>&1
 drive -c /home/jlehulud/.gdrive sync upload $REPOSITORY 0B3ZbmRr1RRkHVGlObFdHTzN2QVU >> $LOG 2>&1
 
+echo "Dropbox status:" >> $LOG 2>&1
+dropbox status >> $LOG 2>&1
 echo "
 
 ##### done. starting next transfer    $DATE #####
 
 "     >> $LOG 2>&1
 
-dropbox status >> $LOG 2>&1
 
 drive -c /home/jlehulud/.gdrive-secondary sync upload $REPOSITORY 0B8HiID_B112OSzdNZ2tOeHRRSDQ >> $LOG 2>&1
 
