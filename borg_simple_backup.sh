@@ -7,11 +7,20 @@ if [[ $EUID -eq 0 ]]; then
    exit 1
 fi
 
+echo  adjusting time... >> $LOG 2>&1
+
+chronyc -a 'burst 4/4' >> $LOG 2>&1
+chronyc -a makestep >> $LOG 2>&1
 echo "
 
 
 
 ##### starting backup at $DATE (real date is $(timeout 2 curl -G --data-urlencode \"format=%D-%T\n\" http://www.timeapi.org/cest/1+hours+before+now?)) #####"     >> $LOG 2>&1
+
+echo "amount of data of last backup: $(du -sh $DATA)" >> $LOG 2>&1
+cd ~
+find  . -path "./BACKUPS"  -prune -o -path "./onedrive" -prune -o -path "./.davfs2" -prune -o -path "./Dropbox" -prune -o -path "./.cache" -prune -o -path "./.dropbox" -prune -o -print -exec cp -pru {} BACKUPS/{} \; 
+echo "amount of data to backup: $(du -sh $DATA)" >> $LOG 2>&1
 dropbox stop >> $LOG 2>&1|| failed to stop dropbox  >> $LOG 2>&1
 
 borg create                           \
@@ -51,7 +60,7 @@ dropbox status >> $LOG 2>&1
 
 echo "
 ##### starting 1st transfer at $DATE #####"     >> $LOG 2>&1
-drive -c /home/jlehulud/.gdrive sync upload $REPOSITORY 0B3ZbmRr1RRkHVGlObFdHTzN2QVU >> $LOG 2>&1
+drive -c /home/jlehulud/.gdrive sync upload $REPOSITORY 0B3ZbmRr1RRkHUHh4NXo0NHdWaEE >> $LOG 2>&1
 
 echo "Dropbox status:" >> $LOG 2>&1
 dropbox status >> $LOG 2>&1
@@ -62,7 +71,15 @@ echo "
 "     >> $LOG 2>&1
 
 
-drive -c /home/jlehulud/.gdrive-secondary sync upload $REPOSITORY 0B8HiID_B112OSzdNZ2tOeHRRSDQ >> $LOG 2>&1
+drive -c /home/jlehulud/.gdrive-secondary sync upload $REPOSITORY 0B8HiID_B112OQ3pzanA5a1FQTG8 >> $LOG 2>&1
 
-echo "##### done 2nd transfer at $DATE (real date is $(timeout 2 curl -G --data-urlencode \"format=%D-%T\n\" http://www.timeapi.org/cest/1+hours+before+now?)) #####"     >> $LOG 2>&1
+echo "
+
+##### done. starting next transfer    $DATE #####
+
+"     >> $LOG 2>&1
+
+owncloudcmd -h --silent --user $CLOUD_USER --password $CLOUD_PASS $REPOSITORY $CLOUDSERVICE >> $LOG 2>&1
+
+echo "##### done all transfers at $DATE (real date is $(timeout 2 curl -G --data-urlencode \"format=%D-%T\n\" http://www.timeapi.org/cest/1+hours+before+now?)) #####"     >> $LOG 2>&1
 
