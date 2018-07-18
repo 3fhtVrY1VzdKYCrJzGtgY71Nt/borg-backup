@@ -1,3 +1,5 @@
+MOVED TO GITLAB.COM
+
 # borg-backup
 scripts to use with borg
 
